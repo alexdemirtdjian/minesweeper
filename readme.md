@@ -16,21 +16,25 @@ It is organised into three class :
 Install :
 ---------
 
-To run the program you need to install pygame
+To manage properly the dependency we will set up a virtualenvironement
 
-For this we will use a virtual environment
+* install python on your machine
 
-First check to have python 2.6 > installed
+* install pip
+`easy_install pip`
 
-Install pip ```sudo easy_install pip```
+* install virtualenv
+`pip install virtualenv`
 
-Then install virtual_environment ```sudo pip install virtual_env```
+* create a virtual environment dedicated to the project
+`virtualenv env_minesweeper`
 
-To run the virtual env : virtual_env /bin/activate
+* to enter the virtual env type to quit the virtual env type just deactivate
+`source env_minesweeper/bin/activate`
+simply ```deactivate``` to exit the virtual environment
 
-simply ```deactivate```to exit the virtual environment
-
-pip install -r requirements
+* install all the requirements for the project
+`pip install -r requirements.txt`
 
 
 Improvements (TODO) :

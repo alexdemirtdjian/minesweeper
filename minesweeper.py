@@ -135,6 +135,8 @@ class Game():
         self.total_mines = dico[difficulty][2]
         self.board = Board(self.length, self.height, self.total_mines)  # we can now initialize the board
         self.board.update_board()  # we not forget to update the number on the cells
+        self.res = min(26, 800/max(self.length, self.height))   # we make sure the size of one case doesn't exceed 26
+
 
     def new_game(self, difficulty="medium"):
         """
@@ -145,6 +147,7 @@ class Game():
         self.state = "new game"  # it is a temporary state to exit the while loop of the play function
         g = Game(difficulty)  # we define a new game
         g.play()  # then we play on it
+
 
     # The main function
     #
@@ -162,14 +165,14 @@ class Game():
 
         # we set up the displaying variables
         window = Surface((520, 520))  # game window
-        window.fill(-1)  # filling the background
+        window.fill((127, 140, 141))  # filling the background with light grey rgb
         x, y = window.get_size()  # we get the size of the screen
-        res = 800/max(self.length, self.height)  # we define the resolution
-        # we make sure the size of one case doesn't exceed 26
-        if res > 26:
-            res = 26
-        screen = display.set_mode((g.length*res, g.height*res), 0, 32)  # initialize a screen for display
-        screen.blit(window, (-(x-g.length*26)/2, -(y-g.height*26)/2))
+
+        # initialize a screen for display
+        # 32 bit of resolution (max)
+        screen = display.set_mode((self.length*self.res, self.height*self.res), 0, 32)
+        # we paste (blit) the grid
+        screen.blit(window, (-(x-self.length*26)/2, -(y-self.height*26)/2))
         background = screen.copy()
         # the colors of the digit we will print (rgb format)
         #
@@ -187,18 +190,17 @@ class Game():
         #
 
         # we create here the sprites representing the digit cells
-        white_surface = Surface((res, res))  # the background of the sprite
+        white_surface = Surface((self.res, self.res))  # the background of the sprites
         white_surface.fill(transform.average_color(background)[:-1])
-        white_surface.fill(-1, (0, 0, res - 1, res - 1))
+        white_surface.fill(-1, (0, 0, self.res - 1, self.res - 1))
         # we define here a list of sprite representing the sprite with digit
         # the blank white_surface is for the 0 sprite
         sprite_digit = [white_surface] + [white_surface.copy() for _ in range(8)]
         for i in xrange(1, 9):
-            ft = font.Font(font.get_default_font(), res)
+            ft = font.Font(font.get_default_font(), g.res)
             fi = ft.render(str(i), 1, colors[i])
-                           # (i % (2*124), i % (8*31), i % (4*62)))
             fr = fi.get_rect()  # we get the rect area of the fi surface
-            fr.center = (res - 1)/2, (res - 1)/2  # we define the center of our sprite
+            fr.center = (self.res - 1)/2, (self.res - 1)/2  # we define the center of our sprite
             sprite_digit[i].blit(fi, fr.topleft)
 
         # loading other sprites
@@ -208,9 +210,11 @@ class Game():
         deg = image.load('sprites/deg3.png')  # a transparent sprite, when we reveal the cell
         display.set_icon(mine)
 
+
+
         # clickable is a list containing all the rects that are clickable
         # we will use them to detect where the user clicks
-        clickable = [screen.blit(deg, ((x % self.length)*res, (x/self.length)*res))
+        clickable = [screen.blit(deg, ((x % self.length)*g.res, (x/self.length)*g.res))
                      for x in range(self.height*self.length)]
         display.flip()  # we update the screen
 
@@ -285,6 +289,7 @@ class Game():
         # we exit the while loop winning or loosing
         if self.state in ["win", "lose"]:
             time.sleep(2)  # we wait two second to show the result
+            self.new_game()
             # we wait until the player click on a new game button
             # on click on main button : new game
             e = event.wait()  # we look for a click or a touch button
