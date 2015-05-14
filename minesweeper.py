@@ -160,7 +160,7 @@ class Game():
         # We start by initializing some variables
         #
 
-        # we set up the diplaying variables
+        # we set up the displaying variables
         window = Surface((520, 520))  # game window
         window.fill(-1)  # filling the background
         x, y = window.get_size()  # we get the size of the screen
@@ -170,22 +170,33 @@ class Game():
             res = 26
         screen = display.set_mode((g.length*res, g.height*res), 0, 32)  # initialize a screen for display
         screen.blit(window, (-(x-g.length*26)/2, -(y-g.height*26)/2))
-        fond = screen.copy()
+        background = screen.copy()
+        # the colors of the digit we will print (rgb format)
+        #
+        colors = {1: (52, 152, 219),
+                 2: (39, 174, 96),
+                 3: (192, 57, 43),
+                 4: (142, 68, 173),
+                 5: (44, 62, 80),
+                 6: (26, 188, 156),
+                 7: (241, 196, 15),
+                 8: (127, 140, 141)}
 
         #
         # Here are the sprites
         #
 
         # we create here the sprites representing the digit cells
-        ft = font.Font(font.get_default_font(), res)
         white_surface = Surface((res, res))  # the background of the sprite
-        white_surface.fill(transform.average_color(fond)[:-1])
+        white_surface.fill(transform.average_color(background)[:-1])
         white_surface.fill(-1, (0, 0, res - 1, res - 1))
         # we define here a list of sprite representing the sprite with digit
         # the blank white_surface is for the 0 sprite
         sprite_digit = [white_surface] + [white_surface.copy() for _ in range(8)]
         for i in xrange(1, 9):
-            fi = ft.render(str(i), 1, (i % (2*124), i % (8*31), i % (4*62)))
+            ft = font.Font(font.get_default_font(), res)
+            fi = ft.render(str(i), 1, colors[i])
+                           # (i % (2*124), i % (8*31), i % (4*62)))
             fr = fi.get_rect()  # we get the rect area of the fi surface
             fr.center = (res - 1)/2, (res - 1)/2  # we define the center of our sprite
             sprite_digit[i].blit(fi, fr.topleft)
@@ -244,7 +255,7 @@ class Game():
                             for elem in lst:
                                 (a, b) = elem  # the position of the cell
                                 x_p = a*g.length + b  # we infer the position in "clickable" list
-                                screen.blit(fond, clickable[x_p].topleft, clickable[x_p])
+                                screen.blit(background, clickable[x_p].topleft, clickable[x_p])
                                 screen.blit(sprite_digit[self.board.cells[a][b].number], clickable[x_p].topleft)
                                 self.board.cells[a][b].open = True
 
@@ -263,7 +274,7 @@ class Game():
                         screen.blit(flag, clickable[x_p])  # so we put a flag
                         self.board.cells[a][b].flag = True
                     else:  # it was already flagged
-                        screen.blit(fond, clickable[x_p].topleft, clickable[x_p])  # so we remove it
+                        screen.blit(background, clickable[x_p].topleft, clickable[x_p])  # so we remove it
                         screen.blit(deg, clickable[x_p].topleft)
                         self.board.cells[a][b].flag = False
                 display.flip()  # we update the screen
