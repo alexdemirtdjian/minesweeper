@@ -128,7 +128,7 @@ class Game():
 
     def __init__(self, difficulty="medium"):
 
-        self.state = "playing"  # "win" or "lose"
+        self.state = "playing"  # state of the game
         self.difficulty = difficulty  # "easy", "medium", "expert"
         self.length = dico[difficulty][0]  # the x_size of the board
         self.height = dico[difficulty][1]  # the y_size of the board
@@ -145,6 +145,8 @@ class Game():
         :return: unit
         """
         self.state = "new game"  # it is a temporary state to exit the while loop of the play function
+        time.sleep(0.001)
+        self.state = "playing"
         g = Game(difficulty)  # we define a new game
         g.play()  # then we play on it
 
@@ -164,26 +166,27 @@ class Game():
         #
 
         # we set up the displaying variables
-        window = Surface((520, 520))  # game window
+        window = Surface((520, 620))  # game window
         window.fill((127, 140, 141))  # filling the background with light grey rgb
         x, y = window.get_size()  # we get the size of the screen
 
         # initialize a screen for display
         # 32 bit of resolution (max)
-        screen = display.set_mode((self.length*self.res, self.height*self.res), 0, 32)
+        screen = display.set_mode((self.length*self.res, self.height*self.res + 100))  # (self.length*self.res, self.height*self.res), 0, 32)
         # we paste (blit) the grid
         screen.blit(window, (-(x-self.length*26)/2, -(y-self.height*26)/2))
+
         background = screen.copy()
         # the colors of the digit we will print (rgb format)
         #
         colors = {1: (52, 152, 219),
-                 2: (39, 174, 96),
-                 3: (192, 57, 43),
-                 4: (142, 68, 173),
-                 5: (44, 62, 80),
-                 6: (26, 188, 156),
-                 7: (241, 196, 15),
-                 8: (127, 140, 141)}
+                  2: (39, 174, 96),
+                  3: (192, 57, 43),
+                  4: (142, 68, 173),
+                  5: (44, 62, 80),
+                  6: (26, 188, 156),
+                  7: (241, 196, 15),
+                  8: (127, 140, 141)}
 
         #
         # Here are the sprites
@@ -208,14 +211,15 @@ class Game():
         mine = image.load('sprites/mine.png')  # the sprite rendered when we win (neutralized mine)
         flag = image.load('sprites/danger.png')  # when we put a flag
         deg = image.load('sprites/deg3.png')  # a transparent sprite, when we reveal the cell
+        playagain = image.load('sprites/playagain.jpg')
         display.set_icon(mine)
-
-
 
         # clickable is a list containing all the rects that are clickable
         # we will use them to detect where the user clicks
-        clickable = [screen.blit(deg, ((x % self.length)*g.res, (x/self.length)*g.res))
+        clickable = [screen.blit(deg, ((x % self.length)*self.res, (x/self.length)*self.res + 100))
                      for x in range(self.height*self.length)]
+
+        menu_clickable = [screen.blit(playagain, ((self.length-2)*self.res/2, 30))]
         display.flip()  # we update the screen
 
         # we enter the while loop, and stay until we change the state from playing
@@ -227,6 +231,9 @@ class Game():
             e = event.wait()  # we look for a click or a touch button
 
             if e.type == MOUSEBUTTONDOWN:  # there is a click !
+                if Rect((mouse.get_pos()), (1, 1)).collidelist(menu_clickable) >= 0:  # we click on a menu button
+                    print Rect((mouse.get_pos()), (1, 1)).collidelist(menu_clickable)
+                    self.new_game()
                 # what case did we collide ?
                 # we transform the click into a (1px, 1px) rect
                 # we find the first cell we collide, defined by x_p
@@ -246,8 +253,8 @@ class Game():
                                     if self.board.cells[i][j].mine:  # it is a mine, we explode it
                                         screen.blit(boom, clickable[i*g.length + j])
                                     elif not self.board.cells[i][j].open:  # not opened cell
-                                        screen.blit(sprite_digit[self.board.cells[i][j].number], clickable[i*g.length + j])
-                            self.state = "lose"   # we get out the while loop
+                                        screen.blit(sprite_digit[self.board.cells[i][j].number], clickable[i*self.length + j])
+                            # self.state = "lose"   # we get out the while loop
 
                         # we click on a cell not opened and not a mine
                         elif not self.board.cells[a][b].open:
@@ -270,7 +277,8 @@ class Game():
                             for j in xrange(self.length):
                                 if self.board.cells[i][j].mine:  # we neutralize the mines
                                     screen.blit(mine, clickable[i*g.length + j])
-                        self.state = "win"  # we get out the while loop changing the state
+                        # print winning message
+                        # self.state = "win"  # we get out the while loop changing the state
 
                 # it is a right click on a non revealed cell
                 elif e.button == 3 and not self.board.cells[a][b].open:
@@ -285,22 +293,6 @@ class Game():
             if e.type == QUIT:  # the user quit
                 event.post(event.Event(QUIT))
                 break
-
-        # we exit the while loop winning or loosing
-        if self.state in ["win", "lose"]:
-            time.sleep(2)  # we wait two second to show the result
-            self.new_game()
-            # we wait until the player click on a new game button
-            # on click on main button : new game
-            e = event.wait()  # we look for a click or a touch button
-            if e.type == MOUSEBUTTONDOWN:  # there is a click !
-                # what case did we collide ?
-                p = Rect((mouse.get_pos()),(1,1)).collidelist(main_button)
-                # it is a right click
-                if e.button == 1:
-                    self.newgame()  # we start a new game
-        else:  # we exit the while loop asking for a new game
-            self.newgame()
 
 
 if __name__ == "__main__":
