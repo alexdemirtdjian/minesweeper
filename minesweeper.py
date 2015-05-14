@@ -59,23 +59,22 @@ class Board():
                     self.update_tile(i, j)
 
     def reveal_blank(self, i, j):
-        c = self.cells[i][j]  # we will wrk on the c cell
-        if not(c.open) and not(c.flag) and (c.number == 0):
-            for a in [-1, 0, 1]:
-                for b in [-1, 0, 1]:
-                    if 0 <= i + a < self.x_size:
-                        if 0 <= y + b < self.y_size:
-                            if self.cells[i + a][j + b].isBomb:
-                                self.cells[i][j].number += 1
-
+        c = self.cells[i][j]
+        # we will wrk on the c cell assuming it is a 0
+        # cell, not opened, not flagged
+        for a in [-1, 0, 1]:
+            for b in [-1, 0, 1]:
+                if 0 <= i + a < self.x_size:
+                    if 0 <= j + b < self.y_size:
+                        self.reveal_tile(i + a, j + b)
 
     def reveal_tile(self, i, j):
         c = self.cells[i][j]
         if not(c.open) and not(c.flag) and (c.number != 0):  # we make sure it is not a 0 cell
             c.open = True
-            return c.mine  # we catch the return value ig it was a mine or not
         elif not(c.open) and not(c.flag) and (c.number == 0):
             self.reveal_blank(i, j)
+        # else it is either flagged or opened, so we do not do anything
 
 
 
