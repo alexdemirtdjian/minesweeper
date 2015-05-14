@@ -1,7 +1,7 @@
 __author__ = 'alexandre'
 
 import random
-import pygame
+from pygame import *
 
 # This file define a class representing a cell
 
@@ -63,9 +63,8 @@ class Board():
                     self.update_tile(i, j)
 
     def reveal_blank(self, i, j):
-        c = self.cells[i][j]
-        # we will wrk on the c cell assuming it is a 0
-        # cell, not opened, not flagged
+        # we will work on the cell assuming it is a 0 cell
+        # not opened and not flagged
         for a in [-1, 0, 1]:
             for b in [-1, 0, 1]:
                 if 0 <= i + a < self.y_size:
@@ -78,7 +77,9 @@ class Board():
             c.open = True
             self.revealed_cells += 1  # one more call revealed
         elif not c.open and not c.flag and (c.number == 0):
+            c.open = True
             self.reveal_blank(i, j)
+            self.revealed_cells += 1
         # else it is either flagged or opened, so we do not do anything
 
 
@@ -103,11 +104,9 @@ class Game():
         self.total_mines = dico[difficulty][2]
         self.board = Board(self.length, self.height, self.total_mines)
 
-"""
-    @staticmethod
-    def newgame(self, difficulty="medium"):
 
 
+    """
     def action_left(self):
         (x, y) = pygame.mouse.get_pos()
         # if the user clicked on the new game button
@@ -139,16 +138,131 @@ class Game():
 
     # pygame.mouse.get_pressed()[0] or [2]
 
+
+    """
+
     def new_game(self, difficulty="medium"):
         self.state = "new game"  # it is a temporary state to exit the while loop of the play function
         g = Game(difficulty)  # we define a new game
         g.play()  # then we play on it
 
 
-#    def print_game(self):
+    def play(self):
+        init()
+        # We start by initializing some variables
+
+        # we set up the diplaying variables
+        fond = Surface((520,520))  # game window
+        fond.fill(-1)  # filling the background
+        x, y = fond.get_size()  # we get the size of the screen
+        res = 800/max(self.length, self.height)  # we define the resolution
+        # we make sure the size of one case doesn't exceed 26
+        if res > 26:
+            res = 26
+        screen = display.set_mode((g.length*res, g.height*res), 0, 32)  # initialize a screen for display
+        screen.blit(fond, (-(x-g.length*26)/2, -(y-g.height*26)/2))
+        fond = screen.copy()
 
 
 
+        # Here are the sprites
+
+        # we define here the sprites representing the digit cells
+        police = font.Font(font.get_default_font(), res)
+        police0 = font.Font(font.get_default_font(), res+2)
+        blanc = Surface((res, res))
+        blanc.fill(transform.average_color(fond)[:-1])
+        blanc.fill(-1, (0, 0, res - 1, res - 1))
+        imgchiffre = [blanc] + [blanc.copy() for _ in range(8)]
+        for i in xrange(1, 9):
+            #fi0=police0.render(str(i),1,(255,255,255))
+            #fr0=fi0.get_rect()
+            fi = police.render(str(i), 1, (i % (2*124), i % (8*31), i % (4*62)))
+            fr = fi.get_rect()
+            fr.center = (res - 1)/2, (res - 1)/2
+            # imgchiffre[i].blit(fi0,fr.topleft)
+            imgchiffre[i].blit(fi, fr.topleft)
+
+        # loading other sprites
+        boom = image.load('sprites/boom.png')
+        mine = image.load('sprites/mine.png')
+        flag = image.load('sprites/danger.png')
+        deg = image.load('sprites/deg3.png')
+        display.set_icon(mine)
+
+        # cases : all the rects that are clickable
+        # we will use them to detect where the user clicks
+        cases = [screen.blit(deg, ((x % self.length)*res, (x/self.length)*res)) for x in range(self.height*self.length)]
+        display.flip()  # we update the screen
+
+
+        # we print the all board
+        # self.pint_game()
+        while self.state == "playing":
+            # we catch the user input
+            # click left or right
+            # the action method may update the state (win, loose, newgame)
+
+            e = event.wait()  # we look for a click or a touch button
+            if e.type == MOUSEBUTTONDOWN:  # there is a click !
+                # what case did we collide ?
+                x_p = Rect((mouse.get_pos()), (1, 1)).collidelist(cases)
+                (a, b) = (x_p / g.length, x_p % g.length)
+                # it is a right click
+                if e.button == 1:
+                    # we clicked on a mine
+                    if self.board.cells[a][b].mine:
+                        for i in xrange(g.height):
+                            for j in xrange(g.length):
+                                if self.board.cells[i][j].mine:
+                                    screen.blit(boom, cases[i])
+                                elif not self.board.cells[i][j].number:  # not opened
+                                    screen.blit(imgchiffre[self.board.cells[i][j].number], cases[i])
+                        self.state = "loose"   # we get out the while loop
+                    elif not self.board.cells[a][b].open:
+                        self.board.reveal_tile(a, b)  # we reveal the tile
+                        screen.blit(fond, cases[x_p].topleft, cases[x_p])
+                        screen.blit(imgchiffre[self.board.cells[a][b].number], cases[x_p].topleft)
+                        self.board.cells[a][b].open = True
+                    # no more case left : we win
+                    if self.board.total_safe_cells == self.board.revealed_cells:
+                        for i in xrange(self.height):
+                            for j in xrange(self.length):
+                                if self.board.cells[i][j].mine:  # we reveal he mines
+                                    screen.blit(mine, cases[i])
+                        self.state = "win"  # we get out the while loop
+
+                # it is a left click on a non revealed case
+                elif e.button == 3 and not self.board.cells[a][b].open:
+                    if not self.board.cells[a][b].flag:  # it was not already flagged
+                        screen.blit(flag, cases[x_p])
+                        self.board.cells[a][b].flag = True
+                    else:  # it was flagged
+                        screen.blit(fond, cases[x_p].topleft, cases[x_p])
+                        screen.blit(deg, cases[x_p].topleft)
+                        self.board.cells[x_p].flag = False
+                display.flip()  # we update the screen
+            if e.type == QUIT:  # the user quit
+                event.post(event.Event(QUIT))
+                break
+            #display.flip()
+            #while event.wait().type!=QUIT:pass
+        # we exit the while loop winning or loosing
+        if self.state in ["win", "loose"]:
+            # we change the state to win
+            # we wait until the player click on a new game button
+            # on click on main button : new game
+            e = event.wait()  # we look for a click or a touch button
+            if e.type == MOUSEBUTTONDOWN:  # there is a click !
+                # what case did we collide ?
+                p = Rect((mouse.get_pos()),(1,1)).collidelist(main_button)
+                # it is a right click
+                if e.button == 1:
+                    self.newgame()  # we start a new game
+        else:  # we exit the while loop asking for a new game
+            self.newgame()
+
+"""
     def play(self):
         # we print the all board
         # self.pint_game()
@@ -174,9 +288,16 @@ if __name__ == "__main__":
     c = Cell()
     print c
     print c.flag, c.mine, c.number, c.open
-    b = Board(15, 15, 50)
-    b.update_tile(5, 5)
+    b = Board(15, 15, 20)
     b.update_board()
     print b
     for i in xrange(15):
         print map(lambda c: c.number, b.cells[i])
+
+
+    # print transform.average_color(fond)  # screen, surface de rendu
+
+    g = Game()  # we create a new game
+    print g.length, g.height
+    print g.total_mines
+    print g.play()
