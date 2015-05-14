@@ -3,7 +3,7 @@ A simple object oriented minesewwper using pygame
 
 This is a pygame project containing a simple minesweeper
 
-![Alt text](/img/minesweeperScreenshot.jpg?raw=true "Screenshot of minesweeper")
+![Alt text](/img/minesweeperScreenshot.png?raw=true "Screenshot of minesweeper")
 
 Global layout :
 
