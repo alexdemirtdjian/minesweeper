@@ -1,4 +1,4 @@
-A simple object oriented minesewwper using pygame
+A simple object oriented minesweeper using Pygame
 =================================================
 
 This is a pygame project containing a simple minesweeper
