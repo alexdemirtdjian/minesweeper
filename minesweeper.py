@@ -1,6 +1,7 @@
 __author__ = 'alexandre'
 
 import random
+import pygame
 
 # This file define a class representing a cell
 
@@ -25,6 +26,8 @@ class Board():
         self.y_size = y_size
         self.mines = mines
         self.cells = []
+        self.remaining_cells = (x_size*y_size) - mines
+        self.revealed_cells = 0
         # we start by filling the board with empty cells
         for j in xrange(y_size):
             row = []
@@ -70,9 +73,10 @@ class Board():
 
     def reveal_tile(self, i, j):
         c = self.cells[i][j]
-        if not(c.open) and not(c.flag) and (c.number != 0):  # we make sure it is not a 0 cell
+        if not c.open and not c.flag and (c.number != 0):  # we make sure it is not a 0 cell
             c.open = True
-        elif not(c.open) and not(c.flag) and (c.number == 0):
+            self.revealed_cells += 1  # one more call revealed
+        elif not c.open and not c.flag and (c.number == 0):
             self.reveal_blank(i, j)
         # else it is either flagged or opened, so we do not do anything
 
@@ -82,14 +86,51 @@ class Board():
 # This file define a class representing a game
 # It inherit from board
 
+dico = {"easy" : (10, 10, 10), "medium" : (16, 16, 40), "expert" : (30, 16, 99)}
+# this is a dictionary representing the difficulty with the board (length, height, total_mines)
+
+cell_size = 1  # the size of a cell on the screen
+
 class Game():
 
-    def __init__(self):
-        self.board = Board()
+    def __init__(self, difficulty="medium"):
         self.state = "playing"  # "win" or "loose"
+        self.difficulty = difficulty  # "easy", "medium", "hard"
+        self.length = dico[difficulty][0]
+        self.height = dico[difficulty][1]
+        self.total_mines = dico[difficulty][2]
+        self.board = Board(self.length, self.height, self.total_mines)
+
 
     @staticmethod
-    def newgame(self):
+    def newgame(self, difficulty="medium"):
 
-    def action(self, button):
+    def action_left(self):
+        (x, y) = pygame.mouse.get_pos()
+        (n, m) = (int(x) % cell_size, int(y) % cell_size)
+        # we check if the user clicked on the board
+        # then we perform the right click
+        if not self.board.cells[n][m].flag:  # we check the cell is not flagged
+            self.board.reveal_tile(n, m)
+            if self.board.cells[n][m].mine:  # it is a mine !
+                self.state = "loose"
+            if
+            # we make the opposite value for the flag
+
+
+    def action_right(self):
+        (x, y) = pygame.mouse.get_pos()
+        (n, m) = (int(x) % cell_size, int(y) % cell_size)
+        # we check if the user clicked on the board
+        # then we perform the right click
+        if not self.board.cells[n][m].open:
+            self.board.cells[n][m].flag = not self.board.cells[n][m].flag
+            # we make the opposite value for the flag
+
+
+    # pygame.mouse.get_pressed()[0] or [2]
+
+    def play(self):
+
+
 
