@@ -2,6 +2,7 @@ __author__ = 'alexandre'
 
 import random
 from pygame import *
+import time
 
 # This file define a class representing a cell
 
@@ -62,6 +63,8 @@ class Board():
                 if self.cells[i][j].mine:  # it is a bomb, we update the neighbours
                     self.update_tile(i, j)
 
+
+    """
     def reveal_blank(self, i, j):
         # we will work on the cell assuming it is a 0 cell
         # not opened and not flagged
@@ -80,6 +83,26 @@ class Board():
             c.open = True
             self.reveal_blank(i, j)
             self.revealed_cells += 1
+        # else it is either flagged or opened, so we do not do anything
+    """
+
+    def reveal_tile(self, i, j, revealed):  #  revealed : list containng position of already cell we reveal in the call of reveal_til
+        c = self.cells[i][j]
+        res = revealed
+        if not c.open and not c.flag and (c.number != 0):  # we make sure it is not a 0 cell
+            c.open = True
+            self.revealed_cells += 1  # one more call revealed
+            res.append((i, j))
+        elif not c.open and not c.flag and (c.number == 0):  # it is a 0 cell not opened and not flagged
+            c.open = True
+            self.revealed_cells += 1
+            res.append((i, j))
+            for a in [-1, 0, 1]:
+                for b in [-1, 0, 1]:
+                    if 0 <= i + a < self.y_size:
+                        if 0 <= j + b < self.x_size:
+                            self.reveal_tile(i + a, j + b, res)
+        return res
         # else it is either flagged or opened, so we do not do anything
 
 
@@ -103,6 +126,7 @@ class Game():
         self.height = dico[difficulty][1]
         self.total_mines = dico[difficulty][2]
         self.board = Board(self.length, self.height, self.total_mines)
+        self.board.update_board()
 
 
 
@@ -141,6 +165,19 @@ class Game():
 
     """
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     def new_game(self, difficulty="medium"):
         self.state = "new game"  # it is a temporary state to exit the while loop of the play function
         g = Game(difficulty)  # we define a new game
@@ -152,7 +189,7 @@ class Game():
         # We start by initializing some variables
 
         # we set up the diplaying variables
-        fond = Surface((520,520))  # game window
+        fond = Surface((520, 520))  # game window
         fond.fill(-1)  # filling the background
         x, y = fond.get_size()  # we get the size of the screen
         res = 800/max(self.length, self.height)  # we define the resolution
@@ -207,23 +244,36 @@ class Game():
             if e.type == MOUSEBUTTONDOWN:  # there is a click !
                 # what case did we collide ?
                 x_p = Rect((mouse.get_pos()), (1, 1)).collidelist(cases)
+                print x_p  # DEBUG
                 (a, b) = (x_p / g.length, x_p % g.length)
+                print (a, b)  # DEBUG
                 # it is a right click
                 if e.button == 1:
-                    # we clicked on a mine
-                    if self.board.cells[a][b].mine:
-                        for i in xrange(g.height):
-                            for j in xrange(g.length):
-                                if self.board.cells[i][j].mine:
-                                    screen.blit(boom, cases[i])
-                                elif not self.board.cells[i][j].number:  # not opened
-                                    screen.blit(imgchiffre[self.board.cells[i][j].number], cases[i])
-                        self.state = "loose"   # we get out the while loop
-                    elif not self.board.cells[a][b].open:
-                        self.board.reveal_tile(a, b)  # we reveal the tile
-                        screen.blit(fond, cases[x_p].topleft, cases[x_p])
-                        screen.blit(imgchiffre[self.board.cells[a][b].number], cases[x_p].topleft)
-                        self.board.cells[a][b].open = True
+                    if not self.board.cells[a][b].flag:  # we check if it is not flagged
+                        # we clicked on a mine
+                        if self.board.cells[a][b].mine:
+                            for i in xrange(g.height):
+                                for j in xrange(g.length):
+                                    if self.board.cells[i][j].mine:
+                                        screen.blit(boom, cases[i])
+                                    elif not self.board.cells[i][j].number:  # not opened
+                                        print "open not mine"  # DEBUG
+                                        screen.blit(imgchiffre[self.board.cells[i][j].number], cases[i])
+                            self.state = "loose"   # we get out the while loop
+
+                        elif not self.board.cells[a][b].open:  # we clicked on a cell not opened and not a mine
+
+                            # self.reveal_cell_with_sprites
+                            lst = self.board.reveal_tile(a, b, [])
+                            # we reveal the tile and store the revealed pos in a list
+                            for elem in lst:
+                                (a, b) = elem
+                                x_p = a*g.length + b
+                                screen.blit(fond, cases[x_p].topleft, cases[x_p])
+                                screen.blit(imgchiffre[self.board.cells[a][b].number], cases[x_p].topleft)
+                                self.board.cells[a][b].open = True
+
+
                     # no more case left : we win
                     if self.board.total_safe_cells == self.board.revealed_cells:
                         for i in xrange(self.height):
@@ -249,6 +299,8 @@ class Game():
             #while event.wait().type!=QUIT:pass
         # we exit the while loop winning or loosing
         if self.state in ["win", "loose"]:
+            print "exit the loop"  # DEBUG
+            time.sleep(5)
             # we change the state to win
             # we wait until the player click on a new game button
             # on click on main button : new game
@@ -285,19 +337,17 @@ class Game():
 """
 
 if __name__ == "__main__":
-    c = Cell()
-    print c
-    print c.flag, c.mine, c.number, c.open
-    b = Board(15, 15, 20)
-    b.update_board()
-    print b
-    for i in xrange(15):
-        print map(lambda c: c.number, b.cells[i])
 
 
     # print transform.average_color(fond)  # screen, surface de rendu
 
     g = Game()  # we create a new game
+
+    board_g = g.board
+    for i in xrange(15):
+        print map(lambda c: c.number, board_g.cells[i])
     print g.length, g.height
     print g.total_mines
+    print board_g.reveal_tile(4, 4, [])
+
     print g.play()
