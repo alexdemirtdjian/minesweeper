@@ -20,21 +20,9 @@ To manage properly the dependency we will set up a virtualenvironement
 
 * install python on your machine
 
-* install pip
-`easy_install pip`
+* install pygame
 
-* install virtualenv
-`pip install virtualenv`
-
-* create a virtual environment dedicated to the project
-`virtualenv env_minesweeper`
-
-* to enter the virtual env type to quit the virtual env type just deactivate
-`source env_minesweeper/bin/activate`
-simply ```deactivate``` to exit the virtual environment
-
-* install all the requirements for the project
-`pip install -r requirements.txt`
+* lauch it with `python minsweeper.py`
 
 
 Improvements (TODO) :

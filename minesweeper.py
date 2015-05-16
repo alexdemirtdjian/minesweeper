@@ -3,6 +3,7 @@ __author__ = 'alexandre'
 import random
 from pygame import *
 import time
+import os
 
 # This is a class representing a cell
 # it is a simple class with 4 attributes
@@ -207,11 +208,12 @@ class Game():
             sprite_digit[i].blit(fi, fr.topleft)
 
         # loading other sprites
-        boom = image.load('sprites/boom.png')  # the sprite rendered when we lose
-        mine = image.load('sprites/mine.png')  # the sprite rendered when we win (neutralized mine)
-        flag = image.load('sprites/danger.png')  # when we put a flag
-        deg = image.load('sprites/deg3.png')  # a transparent sprite, when we reveal the cell
-        playagain = image.load('sprites/playagain.jpg')
+
+        boom = image.load(os.path.abspath('sprites/boom.png'))  # the sprite rendered when we lose
+        mine = image.load(os.path.abspath('sprites/mine.png'))  # the sprite rendered when we win (neutralized mine)
+        flag = image.load(os.path.abspath('sprites/danger.png'))  # when we put a flag
+        deg = image.load(os.path.abspath('sprites/deg3.png'))  # a transparent sprite, when we reveal the cell
+        playagain = image.load(os.path.abspath('sprites/playagain.jpg'))
         display.set_icon(mine)
 
         # clickable is a list containing all the rects that are clickable
@@ -298,8 +300,8 @@ class Game():
 if __name__ == "__main__":
     g = Game()  # we create a new game
     board_g = g.board  #
-    for i in xrange(15):
-        print map(lambda c: c.number, board_g.cells[i])
-    print g.length, g.height
-    print g.total_mines
+    #for i in xrange(15):
+    #    print map(lambda c: c.number, board_g.cells[i])
+    #print g.length, g.height
+    #print g.total_mines
     print g.play()
