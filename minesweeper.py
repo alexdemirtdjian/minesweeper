@@ -72,6 +72,15 @@ class Board():
                         if not self.cells[i + a][j + b].mine and ((a, b) != (0, 0)):
                             self.cells[i + a][j + b].number += 1
 
+    def print_board(self):
+        """
+        This is a debug function that will print the matrix of a board
+        """
+        print "\n"
+        for i in xrange(self.y_size):
+            print map(lambda c: c.number, board_g.cells[i])
+                
+
     def update_board(self):
         """
         This function will update the number of each cell in the board
@@ -119,6 +128,7 @@ class Board():
 # this is a dictionary representing the difficulty with the board associated
 # key : string, values : (length, height, total_mines)
 dico = {"easy": (10, 10, 10), "medium": (16, 16, 40), "expert": (30, 16, 99)}
+level = ["easy", "medium", "expert"]
 
 cell_size = 1  # the size of a cell on the screen
 
@@ -127,9 +137,8 @@ cell_size = 1  # the size of a cell on the screen
 
 class Game():
 
-    def __init__(self, difficulty="medium"):
+    def __init__(self, difficulty):
 
-        self.state = "playing"  # state of the game
         self.difficulty = difficulty  # "easy", "medium", "expert"
         self.length = dico[difficulty][0]  # the x_size of the board
         self.height = dico[difficulty][1]  # the y_size of the board
@@ -139,17 +148,21 @@ class Game():
         self.res = min(26, 800/max(self.length, self.height))   # we make sure the size of one case doesn't exceed 26
 
 
-    def new_game(self, difficulty="medium"):
+    def new_game(self, difficulty="expert"):
         """
         This function create an new game object, and launch the playing loop
         :param difficulty: string, medium by default
         :return: unit
         """
-        self.state = "new game"  # it is a temporary state to exit the while loop of the play function
-        time.sleep(0.001)
-        self.state = "playing"
-        g = Game(difficulty)  # we define a new game
-        g.play()  # then we play on it
+
+        self.difficulty = difficulty  # "easy", "medium", "expert"
+        self.length = dico[difficulty][0]  # the x_size of the board
+        self.height = dico[difficulty][1]  # the y_size of the board
+        self.total_mines = dico[difficulty][2]
+        self.board = Board(self.length, self.height, self.total_mines)  # we can now initialize the board
+        self.board.update_board()  # we not forget to update the number on the cells
+        self.res = min(26, 800/max(self.length, self.height))
+        self.play()  # then we play on it
 
 
     # The main function
@@ -167,7 +180,7 @@ class Game():
         #
 
         # we set up the displaying variables
-        window = Surface((520, 620))  # game window
+        window = Surface((820, 920))  # game window
         window.fill((127, 140, 141))  # filling the background with light grey rgb
         x, y = window.get_size()  # we get the size of the screen
 
@@ -214,6 +227,9 @@ class Game():
         flag = image.load(os.path.abspath('sprites/danger.png'))  # when we put a flag
         deg = image.load(os.path.abspath('sprites/deg3.png'))  # a transparent sprite, when we reveal the cell
         playagain = image.load(os.path.abspath('sprites/playagain.jpg'))
+        easy = image.load(os.path.abspath('sprites/easy.png'))
+        medium = image.load(os.path.abspath('sprites/medium.png'))
+        expert = image.load(os.path.abspath('sprites/expert.png'))
         display.set_icon(mine)
 
         # clickable is a list containing all the rects that are clickable
@@ -221,11 +237,14 @@ class Game():
         clickable = [screen.blit(deg, ((x % self.length)*self.res, (x/self.length)*self.res + 100))
                      for x in range(self.height*self.length)]
 
-        menu_clickable = [screen.blit(playagain, ((self.length-2)*self.res/2, 30))]
+        menu_clickable = [screen.blit(playagain, ((self.length-2)*self.res/2, 10)), 
+            screen.blit(mine, ((self.length-2)*self.res/2 - 20, 70)), 
+            screen.blit(mine, ((self.length-2)*self.res/2 + 10, 70)), 
+            screen.blit(mine, ((self.length-2)*self.res/2 + 40, 70))]
         display.flip()  # we update the screen
 
         # we enter the while loop, and stay until we change the state from playing
-        while self.state == "playing":
+        while 1:
             # we listen for user input
             # click left or right ?
             # the action method may update the state (win, lose, new_game)
@@ -234,8 +253,11 @@ class Game():
 
             if e.type == MOUSEBUTTONDOWN:  # there is a click !
                 if Rect((mouse.get_pos()), (1, 1)).collidelist(menu_clickable) >= 0:  # we click on a menu button
-                    print Rect((mouse.get_pos()), (1, 1)).collidelist(menu_clickable)
-                    self.new_game()
+                    try:
+                        self.new_game(difficulty = level[Rect((mouse.get_pos()), (1, 1)).collidelist(menu_clickable) - 1])    
+                    except:
+                        self.new_game()
+                    
                 # what case did we collide ?
                 # we transform the click into a (1px, 1px) rect
                 # we find the first cell we collide, defined by x_p
@@ -298,7 +320,7 @@ class Game():
 
 
 if __name__ == "__main__":
-    g = Game()  # we create a new game
+    g = Game("medium")  # we create a new game
     board_g = g.board  #
     #for i in xrange(15):
     #    print map(lambda c: c.number, board_g.cells[i])
