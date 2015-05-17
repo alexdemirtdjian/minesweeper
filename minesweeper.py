@@ -246,7 +246,8 @@ class Game():
             screen.blit(mine, ((self.length-2)*self.res/2 + 40, 70))]
 
         f = font.Font(None, 50)
-        surf = f.render(str(self.mines_left), 1, (255, 255, 255))
+        s = "{0}/{1}".format(self.total_mines - self.mines_left, self.total_mines) 
+        surf = f.render(s, 1, (255, 255, 255))
         screen.blit(surf, (0, 0))
 
         display.flip()  # we update the screen
@@ -262,13 +263,14 @@ class Game():
             # the action method may update the state (win, lose, new_game)
             # for instance left click on a bomb changes the state to "lose"
 
-            while not event.peek(): 
+            while not event.peek() and (self.board.total_safe_cells != self.board.revealed_cells): 
                 # while there is no click 
+                # and we haven't won
                 # we update the time
                 elapsed = int(time.time() - t)  # elpased time since the beginnong of the gamr
-                screen.fill(Color("black"), (300, 0, 110, 40))
-                surf = f.render(str(elapsed), 1, (255, 250, 0))
-                screen.blit(surf, (300, 0))
+                screen.fill((127, 140, 141), ((self.length-3)*self.res, 0, 80, 40))
+                surf = f.render(str(elapsed), 1, (255, 255, 255))
+                screen.blit(surf, ((self.length-3)*self.res, 0))
                 display.flip()  # we update the screen
 
 
@@ -335,16 +337,20 @@ class Game():
                         screen.blit(flag, clickable[x_p])  # so we put a flag
                         self.mines_left -= 1
 
-                        screen.fill(Color("black"), (0, 0, 110, 40))
-                        surf = f.render(str(self.mines_left), 1, (255, 255, 255))
+                        screen.fill((127, 140, 141), (0, 0, 90, 40))
+                        s = "{0}/{1}".format(self.total_mines - self.mines_left, self.total_mines) 
+                        surf = f.render(s, 1, (255, 255, 255))
                         screen.blit(surf, (0, 0))
                         self.board.cells[a][b].flag = True
                     else:  # it was already flagged
                         screen.blit(background, clickable[x_p].topleft, clickable[x_p])  # so we remove it
                         screen.blit(deg, clickable[x_p].topleft)
                         self.mines_left += 1
-                        screen.fill(Color("black"), (0, 0, 110, 40))
-                        surf = f.render(str(self.mines_left), 1, (255, 255, 255))
+
+                        screen.fill((127, 140, 141), (0, 0, 90, 40))
+
+                        s = "{0}/{1}".format(self.total_mines - self.mines_left, self.total_mines)
+                        surf = f.render(s, 1, (255, 255, 255))
                         screen.blit(surf, (0, 0))
 
                         self.board.cells[a][b].flag = False
