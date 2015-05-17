@@ -4,6 +4,7 @@ import random
 from pygame import *
 import time
 import os
+import sys
 
 # This is a class representing a cell
 # it is a simple class with 4 attributes
@@ -143,12 +144,13 @@ class Game():
         self.length = dico[difficulty][0]  # the x_size of the board
         self.height = dico[difficulty][1]  # the y_size of the board
         self.total_mines = dico[difficulty][2]
+        self.mines_left = self.total_mines
         self.board = Board(self.length, self.height, self.total_mines)  # we can now initialize the board
         self.board.update_board()  # we not forget to update the number on the cells
         self.res = min(26, 800/max(self.length, self.height))   # we make sure the size of one case doesn't exceed 26
 
 
-    def new_game(self, difficulty="expert"):
+    def new_game(self, difficulty):
         """
         This function create an new game object, and launch the playing loop
         :param difficulty: string, medium by default
@@ -159,6 +161,7 @@ class Game():
         self.length = dico[difficulty][0]  # the x_size of the board
         self.height = dico[difficulty][1]  # the y_size of the board
         self.total_mines = dico[difficulty][2]
+        self.mines_left = self.total_mines
         self.board = Board(self.length, self.height, self.total_mines)  # we can now initialize the board
         self.board.update_board()  # we not forget to update the number on the cells
         self.res = min(26, 800/max(self.length, self.height))
@@ -174,7 +177,7 @@ class Game():
         :return: unit
         """
         init()
-
+        t = time.time()  # we initialize the time
         #
         # We start by initializing some variables
         #
@@ -241,22 +244,44 @@ class Game():
             screen.blit(mine, ((self.length-2)*self.res/2 - 20, 70)), 
             screen.blit(mine, ((self.length-2)*self.res/2 + 10, 70)), 
             screen.blit(mine, ((self.length-2)*self.res/2 + 40, 70))]
+
+        f = font.Font(None, 50)
+        surf = f.render(str(self.mines_left), 1, (255, 255, 255))
+        screen.blit(surf, (0, 0))
+
         display.flip()  # we update the screen
 
         # we enter the while loop, and stay until we change the state from playing
         while 1:
+
+
+
+
             # we listen for user input
             # click left or right ?
             # the action method may update the state (win, lose, new_game)
             # for instance left click on a bomb changes the state to "lose"
-            e = event.wait()  # we look for a click or a touch button
+
+            while not event.peek(): 
+                # while there is no click 
+                # we update the time
+                elapsed = int(time.time() - t)  # elpased time since the beginnong of the gamr
+                screen.fill(Color("black"), (300, 0, 110, 40))
+                surf = f.render(str(elapsed), 1, (255, 250, 0))
+                screen.blit(surf, (300, 0))
+                display.flip()  # we update the screen
+
+
+            e = event.poll()  # we retrieve the click
 
             if e.type == MOUSEBUTTONDOWN:  # there is a click !
                 if Rect((mouse.get_pos()), (1, 1)).collidelist(menu_clickable) >= 0:  # we click on a menu button
-                    try:
-                        self.new_game(difficulty = level[Rect((mouse.get_pos()), (1, 1)).collidelist(menu_clickable) - 1])    
-                    except:
-                        self.new_game()
+                    pos = Rect((mouse.get_pos()), (1, 1)).collidelist(menu_clickable)
+                    if pos > 0:
+                        self.new_game(level[pos - 1])   
+                    else:  # the user click on replay
+                        diff = self.difficulty
+                        self.new_game(diff)
                     
                 # what case did we collide ?
                 # we transform the click into a (1px, 1px) rect
@@ -308,15 +333,25 @@ class Game():
                 elif e.button == 3 and not self.board.cells[a][b].open:
                     if not self.board.cells[a][b].flag:  # it was not already flagged
                         screen.blit(flag, clickable[x_p])  # so we put a flag
+                        self.mines_left -= 1
+
+                        screen.fill(Color("black"), (0, 0, 110, 40))
+                        surf = f.render(str(self.mines_left), 1, (255, 255, 255))
+                        screen.blit(surf, (0, 0))
                         self.board.cells[a][b].flag = True
                     else:  # it was already flagged
                         screen.blit(background, clickable[x_p].topleft, clickable[x_p])  # so we remove it
                         screen.blit(deg, clickable[x_p].topleft)
+                        self.mines_left += 1
+                        screen.fill(Color("black"), (0, 0, 110, 40))
+                        surf = f.render(str(self.mines_left), 1, (255, 255, 255))
+                        screen.blit(surf, (0, 0))
+
                         self.board.cells[a][b].flag = False
                 display.flip()  # we update the screen
             if e.type == QUIT:  # the user quit
-                event.post(event.Event(QUIT))
-                break
+                quit()
+                sys.exit()
 
 
 if __name__ == "__main__":
