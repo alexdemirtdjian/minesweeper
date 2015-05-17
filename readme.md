@@ -28,12 +28,6 @@ To manage properly the dependency we will set up a virtualenvironement
 Improvements (TODO) :
 ---------------------
 
-* Add several level of difficulty
-
-* print the number mine left
-
-* print the time
-
 * let the user choose the size and the number of mines
 
 * adding sound
