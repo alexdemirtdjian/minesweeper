@@ -230,9 +230,9 @@ class Game():
         flag = image.load(os.path.abspath('sprites/danger.png'))  # when we put a flag
         deg = image.load(os.path.abspath('sprites/deg3.png'))  # a transparent sprite, when we reveal the cell
         playagain = image.load(os.path.abspath('sprites/playagain.jpg'))
-        easy = image.load(os.path.abspath('sprites/easy.png'))
-        medium = image.load(os.path.abspath('sprites/medium.png'))
-        expert = image.load(os.path.abspath('sprites/expert.png'))
+        easy = image.load(os.path.abspath('sprites/easy.jpg'))
+        medium = image.load(os.path.abspath('sprites/medium.jpg'))
+        expert = image.load(os.path.abspath('sprites/expert.jpg'))
         display.set_icon(mine)
 
         # clickable is a list containing all the rects that are clickable
@@ -241,9 +241,9 @@ class Game():
                      for x in range(self.height*self.length)]
 
         menu_clickable = [screen.blit(playagain, ((self.length-2)*self.res/2, 10)), 
-            screen.blit(mine, ((self.length-2)*self.res/2 - 20, 70)), 
-            screen.blit(mine, ((self.length-2)*self.res/2 + 10, 70)), 
-            screen.blit(mine, ((self.length-2)*self.res/2 + 40, 70))]
+            screen.blit(easy, ((self.length-2)*self.res/2 - 20, 70)), 
+            screen.blit(medium, ((self.length-2)*self.res/2 + 10, 70)), 
+            screen.blit(expert, ((self.length-2)*self.res/2 + 40, 70))]
 
         f = font.Font(None, 50)
         s = "{0}/{1}".format(self.total_mines - self.mines_left, self.total_mines) 
