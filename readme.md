@@ -18,12 +18,13 @@ Install :
 
 To manage properly the dependency we will set up a virtualenvironement
 
-* install python on your machine
+* install python on your machine (python 2.7.*)
 
-* install pygame
+* install pygame (pygame-1.9.1.win32-py2.7 for windows or pygame-1.9.1-32bit-py2.7-macosx10.3 for mac)
 
 * lauch it with `python minsweeper.py`
 
+tested on windows and MacOSX
 
 Improvements (TODO) :
 ---------------------
